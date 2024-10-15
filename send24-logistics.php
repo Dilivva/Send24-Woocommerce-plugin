@@ -24,13 +24,11 @@ defined( 'ABSPATH' ) or die( 'Hey, what are you doing here? You silly human!' );
 require_once (dirname(__FILE__) . '/inc/Send24_Activation.php');
 require_once (dirname(__FILE__) . '/inc/Send24_Deactivation.php');
 require_once (dirname(__FILE__) . '/inc/Send24_Logger.php');
-require_once (dirname(__FILE__) . '/inc/Send24_Modal.php');
 require_once (dirname(__FILE__) . '/inc/settings/Send24_WC_Admin_Settings.php');
 
 require_once (dirname(__FILE__) . '/inc/Send24_API.php');
 
 require_once (dirname(__FILE__) . '/inc/Send24_Order_Creation.php');
-
 
 
 function activation(){
@@ -84,39 +82,3 @@ function enqueue() {
 
 add_action( 'admin_enqueue_scripts', 'enqueue' );
 
-
-
-//Get variant of send24 and close modal
-
-add_action('wp_ajax_send24_get_selected_variant', 'send24_get_selected_variant');
-add_action('wp_ajax_nopriv_send24_get_selected_variant', 'send24_get_selected_variant');
-function send24_get_selected_variant(){
-	if (isset($_POST['shipping_price'])) {
-		$shipping_price = $_POST['shipping_price']; // Ensure it's a float
-
-		// Set the new shipping price in WooCommerce session
-		WC()->session->set('send24_shipping_rate', $shipping_price);
-
-
-		$rate = array(
-			'label' => 'Send24 Shipping',
-			'cost' => $shipping_price,
-			'calc_tax' => 'per_order'
-		);
-
-		$method = WC()->shipping()->get_shipping_methods()['send24_logistics'];
-		$method->add_rate($rate);
-		wp_send_json_success();
-	} else {
-		wp_send_json_error('No shipping price set');
-	}
-
-	wp_die();
-}
-
-add_action('wp_ajax_send24_show_send24_modal', 'send24_show_send24_modal');
-add_action('wp_ajax_nopriv_send24_show_send24_modal', 'send24_show_send24_modal');
-function send24_show_send24_modal(){
-	Send24_Modal::show_send24_modal();
-	wp_die();
-}

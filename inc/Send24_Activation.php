@@ -1,5 +1,6 @@
 <?php
 namespace inc;
+use inc\Send24_Logger;
 
 class Send24_Activation{
 

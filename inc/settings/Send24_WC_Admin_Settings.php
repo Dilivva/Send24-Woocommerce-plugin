@@ -2,6 +2,8 @@
 
 namespace inc\settings;
 
+use inc\Send24_Logger;
+
 class Send24_WC_Admin_Settings {
 
 	private static $is_wc_loaded = false;

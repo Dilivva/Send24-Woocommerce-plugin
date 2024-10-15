@@ -1,6 +1,6 @@
 jQuery(document).ready(function(){
-	const getMode = jQuery('.send24_mode').val();
-	const url = window.location.href.toString();
+	var getMode = jQuery('.send24_mode').val();
+	var url = window.location.href.toString();
 	console.log('URL', url);
 	if (url.includes('zone')){
 		return;
@@ -67,9 +67,8 @@ jQuery(document).ready(function(){
 		}
 
 
-
 	jQuery('.send24_mode').change(function(){
-		const getChangeVal = jQuery(this).val();
+		var getChangeVal = jQuery(this).val();
 
 		if(getChangeVal == 'live'){
 			jQuery('.send24_test').css('display','none');
@@ -131,6 +130,4 @@ jQuery(document).ready(function(){
 		}
 	});
 });
-
-
 
