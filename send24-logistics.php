@@ -30,6 +30,7 @@ require_once (dirname(__FILE__) . '/inc/settings/Send24_WC_Admin_Settings.php');
 require_once (dirname(__FILE__) . '/inc/Send24_API.php');
 
 require_once (dirname(__FILE__) . '/inc/Send24_Order_Creation.php');
+// require_once (dirname(__FILE__) . '/inc/Send24UI.php');
 
 
 

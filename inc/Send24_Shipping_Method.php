@@ -103,63 +103,53 @@ class Send24_Shipping_Method extends \WC_Shipping_Method {
 		}
 
 
-		$delivery_base_contents = $package['contents'];
-
-		// Destination details
 		$delivery_country_code = $package['destination']['country'];
-		$delivery_state_code = $package['destination']['state'];
-		$destination_state = WC()->countries->get_states($delivery_country_code)[$delivery_state_code];
-		$delivery_base = $package['destination']['address'];
+        $delivery_state_code = $package['destination']['state'];
 
-		$pickup_state 		= 'Lagos';
-		$pickup_address = $this->get_option('woocommerce_store_address');
+        $destination_state = WC()->countries->get_states($delivery_country_code)[$delivery_state_code];
 
-		$pickup_coordinates = '6.4310185, 3.4212225';
-		$destination_coordinates = '6.5894212, 3.3357455';
-		$products = array();
+        $destination_address = $package['destination']['address'];
 
+        $full_destination_address = $destination_address . ', ' . $destination_state;
+        Send24_Logger::write_log("State: $full_destination_address");
 
+        $product_names = [];
 
+        // Prepare data for get_size_and_fragility
+        $delivery_base_contents = $package['contents'];
+        foreach ($delivery_base_contents as $item_id => $item) {
+            $product_id = $item["product_id"];
+            $product = wc_get_product($product_id);
+        
+            $product_names[] = $product->get_name();
+        }
+                
+        $size_fragility_response = $this->api->get_size_and_fragility($product_names, '');
+        $size_resp = json_encode($size_fragility_response);
+        Send24_Logger::write_log("Response: $size_resp");
 
-		// Example of iterating through cart items
-		foreach( $delivery_base_contents as $item_id => $item ){
-			$product_id = $item["product_id"];
-			$product = wc_get_product( $product_id );
+        $size_fragility = json_decode($size_resp, true);
+        
+        // Check if the response contains size and is_fragile information
+        if ($size_fragility && isset($size_fragility['name'], $size_fragility['is_fragile'])) {
+            $size = $size_fragility['name'];
+            $is_fragile = $size_fragility['is_fragile'] ? 1 : 0;
+        } else {
+            // Handle error case here
+            $size = '';
+            $is_fragile = 0;
+        }
+        
+        // Prepare data for calculating price
+        $calculate_price_data = [
+            'size' => $size,
+            'destination_address' => $full_destination_address,
+            'is_fragile' => $is_fragile
+        ];
 
-			$name       = $product->get_name();
-			$products[] = $name;
-			$price = $product->get_price();
-			$quantity = $item['quantity'];
-			$weight = $product->get_weight();
-			$dimension = $product->get_dimensions();
-		}
-
-
-
-		$size_response = $this->api->get_size($products, '');
-		Send24_Logger::write_log($size_response);
-		$size_id = $size_response->size_id;
-		$size_fragility = $size_response->is_fragile;
-
-		Send24_Logger::write_log("Size: $size_id");
-
-		if ($size_id == null){
-			echo '<script> window.alert("Large items present in the cart.") </script>';
-			return;
-		}
-
-
-		$data = [
-			'size_id' => $size_id,
-			'pickup_coordinates' => $pickup_coordinates,
-			'destination_coordinates' => $destination_coordinates,
-			'pickup_state' => $pickup_state,
-			'destination_state' => $destination_state,
-			'is_fragile' => $size_fragility,
-		];
-
-
-		$response = $this->api->calculate_price($data, '');
+        $response = $this->api->calculate_price($calculate_price_data);
+        $resp = json_encode($response);
+        Send24_Logger::write_log("Response: $resp");
 
 
 		if (isset($response->status) && $response->status === 'success' && $response->data !== NULL) {
@@ -246,10 +236,23 @@ function clear_shipping_session_data() {
 	//WC()->session->set('send24_shipping_rate', null);
 }
 
-function load_checkout_script(){
-	wp_enqueue_style( 'modal', plugins_url( 'modal.css', __FILE__ ) );
-	wp_enqueue_script( 'send24checkout', plugins_url( 'send24checkout.js', __FILE__ ) );
-	wp_localize_script( 'send24checkout', 'ajax_object',
-		array( 'ajax_url' => admin_url( 'admin-ajax.php' )
-		));
+// function load_checkout_script(){
+// 	wp_enqueue_style( 'modal', plugins_url( 'modal.css', __FILE__ ) );
+// 	wp_enqueue_script( 'send24checkout', plugins_url( 'send24checkout.js', __FILE__ ) );
+// 	wp_localize_script( 'send24checkout', 'ajax_object',
+// 		array( 'ajax_url' => admin_url( 'admin-ajax.php' )
+// 		));
+// }
+
+function load_checkout_script() {
+    wp_enqueue_style( 'modal', plugins_url( 'modal.css', __FILE__ ) );
+
+    wp_enqueue_script( 'jquery' );
+
+    wp_enqueue_script( 'send24checkout', plugins_url( 'send24checkout.js', __FILE__ ), array('jquery'), null, true );
+
+    wp_localize_script( 'send24checkout', 'ajax_object', array(
+        'ajax_url' => admin_url( 'admin-ajax.php' ),
+    ));
 }
+add_action( 'wp_enqueue_scripts', 'load_checkout_script' );
