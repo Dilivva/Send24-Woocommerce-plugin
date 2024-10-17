@@ -121,3 +121,17 @@ function send24_show_send24_modal(){
 	Send24_Modal::show_send24_modal();
 	wp_die();
 }
+
+add_action('wp_ajax_send24_show_send24_modal', 'send24_show_send24_modal');
+add_action('wp_ajax_nopriv_send24_show_send24_modal', 'send24_show_send24_modal');
+function send24_show_send24_modal(){
+	Send24_Modal::show_send24_modal();
+	wp_die();
+}
+
+add_filter( 'allowed_http_origins', 'add_allowed_origins' );
+function add_allowed_origins( $origins ) {
+    $origins[] = get_site_url();
+	\inc\Send24_Logger::write_log("Url found: $origins");
+    return $origins;
+}
