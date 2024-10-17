@@ -1,80 +1,109 @@
 <?php
 
-use inc\Send24_Logger;
 use inc\Send24_API;
+use inc\Send24_Logger;
 
+$count = 0;
 class Send24_Shipping_Method extends \WC_Shipping_Method {
 
-    public $form_fields = array();
-    private $api;
+	public $form_fields = array();
+	private $api;
 
-    public function __construct($instance_id = 0) {
-        $this->api = new Send24_API();
-        Send24_Logger::write_log("Shipping method called");
 
-        $this->id                 = 'send24_logistics';
-        $this->instance_id        = absint($instance_id);
-        $this->title              = __( 'Send24 Logistics' );
-        $this->method_title       = __('Send24 Logistics');
-        $this->method_description = __( '24 hour shipping solution' );
 
-        $this->enabled            = "yes"; 
 
-        $this->supports           = array(
-            'shipping-zones',
-            'settings',
-        );
+	public function __construct($instance_id = 0) {
+		$this->api = new Send24_API();
+		//Send24_Logger::write_log("Shipping method called");
 
-        $this->init();
+		$this->id                 = 'send24_logistics';
+		$this->instance_id 		  = absint($instance_id);
+		$this->title       = __( 'Send24 Logistics' );
+		$this->method_title    = __('Send24 Logistics');
+		$this->method_description = __( '24 hour shipping solution' );
 
-        add_action('woocommerce_review_order_before_payment', array($this, 'display_send24_shipping_widget'));
+		$this->enabled            = "yes"; // This can be added as a setting but for this example, it's forced enabled.
 
-        add_action('wp_ajax_send24_update_shipping_price', array($this, 'send24_update_shipping_price'));
-        add_action('wp_ajax_nopriv_send24_update_shipping_price', array($this, 'send24_update_shipping_price'));
+		$this->supports              = array(
+			'shipping-zones',
+			'settings',
+		);
 
-        add_action('woocommerce_checkout_order_processed', function ($order_id) {
-            WC()->session->__unset('send24_selected_shipping');
-        });
-    }
+		$this->init();
+		$this->add_a_sleeper_div();
+		add_action('woocommerce_review_order_before_payment ', array($this, 'display_send24_shipping_widget'));
 
-    function init(){
-        $this->init_form_fields();
-        $this->init_settings();
+	}
 
-        add_action( 'woocommerce_update_options_shipping_' . $this->id, array( $this, 'process_admin_options' ) );
 
-        $mode = $this->settings['mode'];
-        $connected = false;
-        if ($mode === 'test'){
-            $public_key = $this->settings['test_api_key'];
-            $secret_key = $this->settings['test_secret_key'];
-            $connected = !empty($public_key) && !empty($secret_key);
-        } else {
-            $public_key = $this->settings['live_api_key'];
-            $secret_key = $this->settings['live_secret_key'];
-            $connected = !empty($public_key) && !empty($secret_key);
-        }
-        $message = '';
-        if ($connected){
-            $message = "<span style='color:#1c4a05;font-weight: 800;'>Connected</span>";
-        } else {
-            $message = "<span style='color:#cb0847;font-weight: 800;'>Not Connected</span>";
-        }
 
-        $this->method_description = __( '24 hour shipping solution' .'<br><br><br><span><b>Status</b>: '. $message.'</span>' );
-    }
 
-    // Fetch shipping options when on the checkout page
-    public function calculate_shipping( $package = array() ){
-        static $dropdown_rendered = false;
+	function init(){
+		$this->init_form_fields();
+		$this->init_settings();
 
-        if ($dropdown_rendered) {
-            return;
-        }
+		add_action( 'woocommerce_update_options_shipping_' . $this->id, array( $this, 'process_admin_options' ) );
+		add_action('woocommerce_review_order_before_payment', array($this, 'display_send24_shipping_widget'));
 
-        $dropdown_rendered = true;
 
-        $delivery_country_code = $package['destination']['country'];
+		$mode = $this->settings['mode'];
+		$connected = false;
+		if ($mode === 'test'){
+			$public_key = $this->settings['test_api_key'];
+			$secret_key = $this->settings['test_secret_key'];
+			$connected = !empty($public_key) && !empty($secret_key);
+		}else{
+			$public_key = $this->settings['live_api_key'];
+			$secret_key = $this->settings['live_secret_key'];
+			$connected = !empty($public_key) && !empty($secret_key);
+		}
+
+		if ($connected){
+			$message = "<span style='color:#1c4a05;font-weight: 800;'>Connected</span>";
+		}else{
+			$message = "<span style='color:#cb0847;font-weight: 800;'>Not Connected</span>";
+		}
+
+		$this->method_description = __( '24 hour shipping solution' .'<br><br><br><span><b>Status</b>: '. $message.'</span>' );
+	}
+
+	// Fetch shipping options when on the checkout page
+	public function calculate_shipping( $package = array() ){
+		if (is_cart()){
+			Send24_Logger::write_log("CART");
+			WC()->session->set('send24_shipping_rate', null);
+			WC()->session->set('send24_user_cart_response', null);
+			$rate = array(
+				'label'    => "Send24 Shipping (Calculated at checkout)",
+				'cost'     => '0',
+				'calc_tax' => 'per_order'
+			);
+			$this->add_rate( $rate );
+			return;
+		}
+//		if (!is_checkout()) {
+//			Send24_Logger::write_log("Not checkout");
+//			return;
+//		}
+
+		//Check if there's a calculated
+		$pricing_rate = WC()->session->get( 'send24_shipping_rate' );
+
+
+		if ($pricing_rate != null){
+			Send24_Logger::write_log("Shipping $pricing_rate");
+			$rate = array(
+				'label'    => "Send24 Shipping",
+				'cost'     => $pricing_rate,
+				'calc_tax' => 'per_order'
+			);
+
+			$this->add_rate( $rate );
+			return;
+		}
+
+
+		$delivery_country_code = $package['destination']['country'];
         $delivery_state_code = $package['destination']['state'];
 
         $destination_state = WC()->countries->get_states($delivery_country_code)[$delivery_state_code];
@@ -122,58 +151,41 @@ class Send24_Shipping_Method extends \WC_Shipping_Method {
         $resp = json_encode($response);
         Send24_Logger::write_log("Response: $resp");
 
-        WC()->session->set('send24_shipping_options', $response);
 
-        if (is_checkout()) {
-            $response_data = json_decode($resp, true);
-            if (isset($response_data['status']) && $response_data['status'] === 'success' && !empty($response_data['data'])) {
+		if (isset($response->status) && $response->status === 'success' && $response->data !== NULL) {
+			foreach ($response->data as $option) {
+				foreach ( $option as $shipping_type => $details ) {
+					if ( $shipping_type === 'HUB_TO_HUB' ) {
+						$formatted_price = $details->formatted_price;
+						$price           = $details->price;
+						Send24_Logger::write_log("Price: $price");
+						WC()->session->set('send24_shipping_rate', $price);
+						WC()->session->set('send24_user_cart_response', json_encode($response));
+						$rate = array(
+							'label'    => "Send24 Shipping",
+							'cost'     => $price,
+							'calc_tax' => 'per_order'
+						);
 
-                // Enqueue CSS and JS files
-                add_action('wp_enqueue_scripts', function() {
-                    wp_enqueue_style('send24-widget-style', plugin_dir_url(__FILE__) . 'send24-shipping-widget.css');
-                    wp_enqueue_script('send24-widget-script', plugin_dir_url(__FILE__) . 'send24-shipping-widget.js', array('jquery'), null, true);
+						$this->add_rate( $rate );
 
-                    // Localize script to pass data to JS
-                    wp_localize_script('send24-widget-script', 'send24_ajax_object', array(
-                        'ajax_url' => admin_url('admin-ajax.php'),
-                        'nonce'    => wp_create_nonce('send24_nonce')
-                    ));
-                });
+					}
+				}
+			}
+		}
 
-                // Make $response_data available to the template
-                $send24_response_data = $response_data['data'];
-
-                // Include the HTML template
-                include plugin_dir_path(__FILE__) . 'send24-shipping-widget.php';
-
-            } else {
-                echo '<p>Unable to fetch Send24 shipping options at this time. Please try again later.</p>';
-            }
-        }
     }
 
-    // Handle the AJAX request to update shipping price
-    public function send24_update_shipping_price() {
-        check_ajax_referer('send24_nonce', 'nonce'); // Security check
+	private function add_a_sleeper_div(){
+		if (is_checkout()){
+			echo '<div id="send24Modal_hidden" class="send24-modal-hidden" style="display: none;"> </div>';
+		}
 
-        if (!isset($_POST['shipping_option'])) {
-            wp_send_json_error('Shipping option not set');
-        }
+	}
 
-        $shipping_option = sanitize_text_field($_POST['shipping_option']);
-        $price = floatval($_POST['price']);
-        $hub_uuid = isset($_POST['hub_uuid']) ? sanitize_text_field($_POST['hub_uuid']) : '';
 
-        // Update session with chosen shipping price
-        WC()->session->set('send24_selected_shipping', [
-            'option' => $shipping_option,
-            'price' => $price,
-            'hub_uuid' => $hub_uuid
-        ]);
 
-        wp_send_json_success('Shipping option updated successfully');
-    }
-
+	
 
 	public function init_form_fields() {
 		$this->form_fields = array(
@@ -215,4 +227,32 @@ class Send24_Shipping_Method extends \WC_Shipping_Method {
 			)
 		);
 	}
+
+	}
+
+add_action( 'woocommerce_cart_updated', 'clear_shipping_session_data' );
+add_filter( 'woocommerce_cart_calculate_fees', 'load_checkout_script', 10, 1 );
+function clear_shipping_session_data() {
+	//WC()->session->set('send24_shipping_rate', null);
 }
+
+// function load_checkout_script(){
+// 	wp_enqueue_style( 'modal', plugins_url( 'modal.css', __FILE__ ) );
+// 	wp_enqueue_script( 'send24checkout', plugins_url( 'send24checkout.js', __FILE__ ) );
+// 	wp_localize_script( 'send24checkout', 'ajax_object',
+// 		array( 'ajax_url' => admin_url( 'admin-ajax.php' )
+// 		));
+// }
+
+function load_checkout_script() {
+    wp_enqueue_style( 'modal', plugins_url( 'modal.css', __FILE__ ) );
+
+    wp_enqueue_script( 'jquery' );
+
+    wp_enqueue_script( 'send24checkout', plugins_url( 'send24checkout.js', __FILE__ ), array('jquery'), null, true );
+
+    wp_localize_script( 'send24checkout', 'ajax_object', array(
+        'ajax_url' => admin_url( 'admin-ajax.php' ),
+    ));
+}
+add_action( 'wp_enqueue_scripts', 'load_checkout_script' );

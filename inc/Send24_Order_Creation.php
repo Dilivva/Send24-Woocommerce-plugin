@@ -1,7 +1,7 @@
 <?php
 // Send24 Order Creation
-use inc\Send24_Logger;
 use inc\Send24_API;
+use inc\Send24_Logger;
 
 class Send24_Order_Creation {
 
