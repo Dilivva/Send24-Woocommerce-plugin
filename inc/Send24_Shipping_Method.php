@@ -81,12 +81,7 @@ class Send24_Shipping_Method extends \WC_Shipping_Method {
 			$this->add_rate( $rate );
 			return;
 		}
-//		if (!is_checkout()) {
-//			Send24_Logger::write_log("Not checkout");
-//			return;
-//		}
 
-		//Check if there's a calculated
 		$pricing_rate = WC()->session->get( 'send24_shipping_rate' );
 
 
@@ -252,6 +247,7 @@ function load_checkout_script() {
     wp_enqueue_style( 'modal', plugins_url( 'modal.css', __FILE__ ) );
 
     wp_enqueue_script( 'jquery' );
+	//wp_enqueue_script( 'send24widget', plugins_url( 'send24_shipping_widget.js', __FILE__ ), array('jquery'), null, true );
 
     wp_enqueue_script( 'send24checkout', plugins_url( 'send24checkout.js', __FILE__ ), array('jquery'), null, true );
 
