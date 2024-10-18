@@ -4,8 +4,6 @@ jQuery(document.body).on(
   function () {
     let partialValue = 'send24' // The partial value you're searching for
 
-    console.log('Send24 Seen')
-
     let radioInput = jQuery(
       'input[type="radio"][value*="' + partialValue + '"]'
     )
@@ -25,7 +23,9 @@ jQuery(document.body).on(
         .then((response) => response.text())
         .then((response) => {
           // Add curly braces and semicolons
-          jQuery('#send24Modal_hidden').html(response).show()
+            //const tree = jQuery('#send24Modal_hidden')
+            //console.log("Response: ", tree)
+            jQuery('#send24Modal_hidden').html(response).show()
         })
         .catch((err) => console.log(err))
     } else {
@@ -39,7 +39,32 @@ jQuery(document.body).on(
 
 jQuery(document).on('change', '', function () {
   console.log('Cart totals updated!') // More specific to cart total updates.
-  //Update cart totals in a custom display:
-  // let updatedCartTotals = jQuery('.cart_totals').html();
-  // jQuery('#my-cart-totals-display').html(updatedCartTotals);
+    console.log("SH,", selectedHubId);
+
+    var selectedOption = document.querySelector("input[name=\"send24_shipping_option\"]:checked");
+    if (selectedOption) {
+        var price = selectedOption.getAttribute("data-price");
+        console.log("Selected shipping price: " + price);
+
+        const options = {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams(
+                {
+                    action: "send24_get_selected_variant",
+                    shipping_price: price,
+                    selected_hub: selectedHubId
+                }
+            )
+        };
+
+        fetch(ajax_object.ajax_url, options)
+            .then(response => response.json())
+            .then(response => {  // Add curly braces and semicolons
+
+            })
+            .catch(err => console.error(err));
+    }
+
+
 })

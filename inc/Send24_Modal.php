@@ -13,24 +13,24 @@ class Send24_Modal {
 		\inc\Send24_Logger::write_log(str_contains($chosen_shipping, 'send24_logistics'));
 		\inc\Send24_Logger::write_log($response);
 
-		if (is_checkout() && isset($response)){
-			Send24_Modal::send24_modal($response);
-		}
+//		if (is_checkout() && isset($response)){
+//			Send24_Modal::send24_modal($response);
+//		}
 		Send24_Modal::send24_modal($response);
 	}
 	private static function send24_modal($response){
 		echo '
-		<div id="send24Modal" class="send24-modal" style="display: none;">
+		<div id="send24Modal" class="send24-modal" style="display: block;">
 			<div class="send24-modal-content">
 				<span id="closeSend24Modal" class="send24-close">&times;</span>
 				<img src="' . plugin_dir_url(__FILE__) . 'send24-logo.png" alt="Send24 Logo" class="send24-logo" />';
 
 				// Loop through the data to find HUB_TO_HUB and HUB_TO_DOOR
-				foreach ($response_data['data'] as $option) {
+				foreach ($response->data as $option) {
 				    foreach ($option as $shipping_type => $details) {
 				        if ($shipping_type === 'HUB_TO_DOOR' || $shipping_type === 'HUB_TO_HUB') {
-				            $formatted_price = $details['formatted_price'];
-				            $price = $details['price'];
+				            $formatted_price = $details->formatted_price;
+				            $price = $details->price;
 				            $delivery_type = ($shipping_type === 'HUB_TO_DOOR') ? 'Door Delivery' : 'Hub Delivery';
 				            $description = ($shipping_type === 'HUB_TO_HUB')
 				                ? 'Easily pick up your packages at a Send24 hub closest to you.'
@@ -50,7 +50,7 @@ class Send24_Modal {
 				            if ($shipping_type === 'HUB_TO_HUB') {
 				                echo "
 				                <h4 class='send24-hub-text'>
-				                    <a href='#' id='toggleHubsLinkclass='send24-hub-link'>
+				                    <a href='#' id='toggleHubsLink'class='send24-hub-link'>
         								<i>See Nearby Hubs</i>
         							</a>
 				                </h4>
@@ -61,12 +61,12 @@ class Send24_Modal {
                     				<ul style='list-style: none; padding-left: 0;'>";
 
                 				// Loop through the recommended hubs
-                				foreach ($details['recommended_hubs'] as $hub) {
-                					$hub_name = $hub['name'];
-                					$hub_address = $hub['address'];
-                					$hub_phone = $hub['phone'];
-                					$hub_distance = $hub['distance'];
-									$hub_uuid = $hub['uuid'];
+                				foreach ($details->recommended_hubs as $hub) {
+                					$hub_name = $hub->name;
+                					$hub_address = $hub->address;
+                					$hub_phone = $hub->phone;
+                					$hub_distance = $hub->distance;
+									$hub_uuid = $hub->uuid;
 
                 					echo "
                     				<li style='border-bottom: 1px solid #ddd; padding: 10px 0; display: flex; align-items: center;'>
@@ -75,7 +75,7 @@ class Send24_Modal {
             								<div class='send24-description' style='display: inline-block;'>
             								    <strong>$hub_name</strong><br>
             								    Address: $hub_address<br>
-            								    Distance from your Location{$hub_distance}km<br>
+            								    Distance from your Location: {$hub_distance}km<br>
             								    Phone Number: $hub_phone
             								</div>
             							</label>
@@ -95,6 +95,7 @@ class Send24_Modal {
 
 				echo "
 				<script>
+				var selectedHubId = '';
 				    document.getElementById('toggleHubsLink').addEventListener('click', function(event) {
 				        event.preventDefault();
 				        var hubDeliveryRadio = document.querySelector('input[name=send24_shipping_option][value=HUB_TO_HUB]');
@@ -113,13 +114,16 @@ class Send24_Modal {
 				        }
 				    });
 
+                   
 
 				function highlightHub(selectedHub) {
+               
 					var hubs = document.getElementsByName('selected_hub');
 					hubs.forEach(function(hub) {
 						hub.closest('li').style.backgroundColor = '#fff';
 					});
 
+                    selectedHubId = selectedHub.value;
 					// Highlight the selected hub
 					selectedHub.closest('li').style.backgroundColor = '#F5F2DC';
 				}
@@ -145,12 +149,10 @@ class Send24_Modal {
 				    </button>
 				</div>
 			</div>
-		</div>';
+		</div>
 
 	
-			// } else {
-			// 	echo '<p>Unable to fetch Send24 shipping options at this time. Please try again later.</p>';
-			// }
+		
 
 
 <!-- Modal Script -->
@@ -159,6 +161,11 @@ class Send24_Modal {
 //	 document.getElementById("send24Modal").style.display = "block";
 // });
 
+function reloadPage(){
+    document.getElementById("send24Modal").style.display = "none"
+    location.reload();
+   
+}
 
     document.getElementById("closeSend24Modal").addEventListener("click", function() {
         console.log("Close");
@@ -182,32 +189,39 @@ class Send24_Modal {
 			    var buttonText = document.querySelector(".button-text");
 			    loader.style.display = "inline-block";
 			    buttonText.style.display = "none";
+                setTimeout(reloadPage, 2000);
                 
-                close(price);
 
 			    // Define the AJAX URL and nonce
 			    //var ajaxUrl = wc_cart_params.wc_ajax_url;
 			    //var nonce = wc_cart_params.wc_ajax_nonce;
 
 			    // Make the AJAX request
-			    const options = {
-  						method: "POST",
-                        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-                        body: new URLSearchParams({action: "send24_get_selected_variant", shipping_price: price} )
-				};
-                
-                fetch(ajax_object.ajax_url, options)
-                .then(response => response.json())
-                .then(response => {  // Add curly braces and semicolons
-                    document.getElementById("send24Modal").style.display = "none"
-                    location.reload();
-                })
-  				.catch(err => console.error(err));
+//			    const options = {
+//  						method: "POST",
+//                        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+//                        body: new URLSearchParams(
+//                            {
+//                            action: "send24_get_selected_variant",
+//                            shipping_price: price,
+//                            selected_hub: selectedHubId,
+//                            selected_variant: selectedVariantName
+//                            } 
+//                            )
+//				};
+//                
+//                fetch(ajax_object.ajax_url, options)
+//                .then(response => response.json())
+//                .then(response => {  // Add curly braces and semicolons
+//                    setTimeout(reloadPage, 3000);
+//                })
+//  				.catch(err => console.error(err));
             }
 	    });
 
     });
 </script>';
+
 	}
 
 

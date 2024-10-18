@@ -92,11 +92,17 @@ add_action( 'admin_enqueue_scripts', 'enqueue' );
 add_action('wp_ajax_send24_get_selected_variant', 'send24_get_selected_variant');
 add_action('wp_ajax_nopriv_send24_get_selected_variant', 'send24_get_selected_variant');
 function send24_get_selected_variant(){
-	if (isset($_POST['shipping_price'])) {
-		$shipping_price = $_POST['shipping_price']; // Ensure it's a float
+	if (isset($_POST['shipping_price']) && isset($_POST['selected_variant'])) {
+		$shipping_price = $_POST['shipping_price'];
+		$selected_variant = $_POST['selected_variant'];
+		$selected_hub_id = $_POST['selected_hub'];
+
+		\inc\Send24_Logger::write_log("Result: $selected_variant, $selected_hub_id");
+
 
 		// Set the new shipping price in WooCommerce session
 		WC()->session->set('send24_shipping_rate', $shipping_price);
+		WC()->session->set('send24_selected_hub_id', $selected_hub_id);
 
 
 		$rate = array(
@@ -122,16 +128,51 @@ function send24_show_send24_modal(){
 	wp_die();
 }
 
-add_action('wp_ajax_send24_show_send24_modal', 'send24_show_send24_modal');
-add_action('wp_ajax_nopriv_send24_show_send24_modal', 'send24_show_send24_modal');
-function send24_show_send24_modal(){
-	Send24_Modal::show_send24_modal();
-	wp_die();
-}
 
 add_filter( 'allowed_http_origins', 'add_allowed_origins' );
 function add_allowed_origins( $origins ) {
-    $origins[] = get_site_url();
-	\inc\Send24_Logger::write_log("Url found: $origins");
+	$site_url = get_site_url();
+    $origins[] = $site_url;
+	\inc\Send24_Logger::write_log("Url found: $site_url");
     return $origins;
 }
+
+add_filter( 'woocommerce_calculated_total', 'my_custom_shipping_calculation', 10, 2 );
+function my_custom_shipping_calculation( $total, $cart ) {
+	// Get the cart total
+	$shipping_total = $cart->get_shipping_total();
+
+	\inc\Send24_Logger::write_log("Ships: $shipping_total, $total");
+
+	return $total;
+}
+
+
+
+
+//function filter_need_shipping($val) {
+//	// Check if we need to recalculate shipping
+//	if (!is_admin()) {
+//		$prevent_after_add = WC()->session->get('prevent_recalc_on_add_to_cart');
+//		return $val && !$prevent_after_add;
+//	}
+//	return $val;
+//}
+//add_filter('woocommerce_cart_needs_shipping', 'filter_need_shipping');
+//
+//function mark_cart_not_to_recalc() {
+//	// Mark the cart not to recalculate when adding items
+//	if (!is_admin()) {
+//		WC()->session->__unset('prevent_recalc_on_add_to_cart');
+//	}
+//}
+//add_action('woocommerce_before_calculate_totals', 'mark_cart_not_to_recalc');
+//
+//
+//// Unset the flag when proceeding to checkout
+//add_action('woocommerce_checkout_init', 'unset_prevent_recalc_flag');
+//function unset_prevent_recalc_flag() {
+//	if (!is_admin()) {
+//		WC()->session->__unset('prevent_recalc_on_add_to_cart');
+//	}
+//}
