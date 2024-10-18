@@ -139,6 +139,10 @@ class Send24_Shipping_Method extends \WC_Shipping_Method {
             $size = '';
             $is_fragile = 0;
         }
+
+		// Store size and is_fragile in WooCommerce session for later use
+		WC()->session->set('send24_size', $size);
+		WC()->session->set('send24_is_fragile', $is_fragile);
         
         // Prepare data for calculating price
         $calculate_price_data = [
