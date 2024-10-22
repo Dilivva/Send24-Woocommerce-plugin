@@ -5,21 +5,21 @@ class Send24_Modal {
 	public static function show_send24_modal(){
 		\inc\Send24_Logger::write_log("Showing modal");
 		$data =  WC()->session->get( 'send24_user_cart_response' );
+		$variant = WC()->session->get('send24_selected_variant');
+		$selected_hub_id = WC()->session->get('send24_selected_hub_id');
 		$response = json_decode($data);
-		$chosen_methods = WC()->session->get( 'chosen_shipping_methods' );
-		$chosen_shipping = $chosen_methods[0];
 
-		\inc\Send24_Logger::write_log(is_checkout());
-		\inc\Send24_Logger::write_log(str_contains($chosen_shipping, 'send24_logistics'));
-		\inc\Send24_Logger::write_log($response);
+		Send24_Modal::send24_modal($response, $variant, $selected_hub_id);
 
-//		if (is_checkout() && isset($response)){
-//			Send24_Modal::send24_modal($response);
-//		}
-		Send24_Modal::send24_modal($response);
 	}
-	private static function send24_modal($response){
+	private static function send24_modal($response, $variant, $selected_hub_id){
 		echo '
+		<script>
+				var selectedVariantName = "";
+				function selectedVariant(variant){
+                    selectedVariantName = variant.value;
+                }
+        </script>
 		<div id="send24Modal" class="send24-modal" style="display: block;">
 			<div class="send24-modal-content">
 				<span id="closeSend24Modal" class="send24-close">&times;</span>
@@ -28,6 +28,10 @@ class Send24_Modal {
 				// Loop through the data to find HUB_TO_HUB and HUB_TO_DOOR
 				foreach ($response->data as $option) {
 				    foreach ($option as $shipping_type => $details) {
+						$checked = '';
+						if ($variant === $shipping_type){
+							$checked = "checked";
+						}
 				        if ($shipping_type === 'HUB_TO_DOOR' || $shipping_type === 'HUB_TO_HUB') {
 				            $formatted_price = $details->formatted_price;
 				            $price = $details->price;
@@ -40,7 +44,8 @@ class Send24_Modal {
 				            echo "
 				            <div class='send24-shipping-option'>
 				                <label class='send24-shipping-label'>
-				                    <input type='radio' name='send24_shipping_option' data-price='$price' value='$shipping_type'>
+				                    <input type='radio' name='send24_shipping_option' onclick='selectedVariant(this)' data-price='$price' value='$shipping_type'
+				                    $checked>
 				                    $delivery_type
 				                </label>
 				                <span class='send24-shipping-price'>₦$formatted_price</span>
@@ -60,18 +65,27 @@ class Send24_Modal {
                     				<form id='hubSelectionForm'>
                     				<ul style='list-style: none; padding-left: 0;'>";
 
-                				// Loop through the recommended hubs
+                				// Loop through the recommended hubs and pre-select the hub
+
                 				foreach ($details->recommended_hubs as $hub) {
                 					$hub_name = $hub->name;
                 					$hub_address = $hub->address;
                 					$hub_phone = $hub->phone;
                 					$hub_distance = $hub->distance;
 									$hub_uuid = $hub->uuid;
+					                $checked_hub = '';
+
+
+					                if ($selected_hub_id == $hub_uuid){
+						                $checked_hub = "checked";
+					                }
+
+
 
                 					echo "
                     				<li style='border-bottom: 1px solid #ddd; padding: 10px 0; display: flex; align-items: center;'>
             							<label style='cursor: pointer; display: flex; align-items: center;'>
-            								<input type='radio' name='selected_hub' value='$hub_uuid' style='margin-right: 10px;' onclick='highlightHub(this)'>
+            								<input type='radio' name='selected_hub' value='$hub_uuid' style='margin-right: 10px;' onclick='highlightHub(this)' $checked_hub>
             								<div class='send24-description' style='display: inline-block;'>
             								    <strong>$hub_name</strong><br>
             								    Address: $hub_address<br>
@@ -162,9 +176,8 @@ class Send24_Modal {
 // });
 
 function reloadPage(){
-    document.getElementById("send24Modal").style.display = "none"
-    location.reload();
    
+    location.reload();
 }
 
     document.getElementById("closeSend24Modal").addEventListener("click", function() {
@@ -179,45 +192,48 @@ function reloadPage(){
     };
 
     document.getElementById("confirmSend24Shipping").addEventListener("click", function() {
-	    jQuery(document).on("click", function() {
-		    var selectedOption = document.querySelector("input[name=\"send24_shipping_option\"]:checked");
+        var selectedOption = document.querySelector("input[name=\"send24_shipping_option\"]:checked");
 		    if (selectedOption) {
 			    var price = selectedOption.getAttribute("data-price");
-			    console.log("Selected shipping price: " + price);
+                var selectedVariant = selectedOption.value;
+                
+                if (selectedVariant === "HUB_TO_DOOR"){
+                    selectedHubId = null
+                }
+			    
 
 			    var loader = document.querySelector(".button-loader");
 			    var buttonText = document.querySelector(".button-text");
 			    loader.style.display = "inline-block";
 			    buttonText.style.display = "none";
-                setTimeout(reloadPage, 2000);
+                //setTimeout(reloadPage, 2000);
                 
 
 			    // Define the AJAX URL and nonce
 			    //var ajaxUrl = wc_cart_params.wc_ajax_url;
 			    //var nonce = wc_cart_params.wc_ajax_nonce;
 
-			    // Make the AJAX request
-//			    const options = {
-//  						method: "POST",
-//                        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-//                        body: new URLSearchParams(
-//                            {
-//                            action: "send24_get_selected_variant",
-//                            shipping_price: price,
-//                            selected_hub: selectedHubId,
-//                            selected_variant: selectedVariantName
-//                            } 
-//                            )
-//				};
-//                
-//                fetch(ajax_object.ajax_url, options)
-//                .then(response => response.json())
-//                .then(response => {  // Add curly braces and semicolons
-//                    setTimeout(reloadPage, 3000);
-//                })
-//  				.catch(err => console.error(err));
+			     //Make the AJAX request
+			    const options = {
+  						method: "POST",
+                        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+                        body: new URLSearchParams(
+                            {
+                            action: "send24_get_selected_variant",
+                            shipping_price: price,
+                            selected_hub: selectedHubId,
+                            selected_variant: selectedVariant
+                            } 
+                            )
+				};
+                
+                fetch(ajax_object.ajax_url, options)
+                .then(response => response.json())
+                .then(response => {  // Add curly braces and semicolons
+                    reloadPage();
+                })
+  				.catch(err => console.error(err));
             }
-	    });
 
     });
 </script>';
