@@ -33,6 +33,8 @@ class Send24_Order_Creation {
 
     public function create_send24_order( $order ) {
         $destination_hub_id = WC()->session->get('send24_selected_hub_id');
+		$variant = WC()->session->get('send24_selected_variant');
+
         if (!$destination_hub_id) {
 	        $destination_hub_id = null;
         }
@@ -73,6 +75,8 @@ class Send24_Order_Creation {
 
 	        if ($product_image_url) {
 		        $product_images[] = $product_image_url;
+	        }else{
+				$product_images[] = "https://i.pinimg.com/474x/4d/2d/b9/4d2db95c05c3786d6e6decb6d6327c4d.jpg";
 	        }
 
         }
@@ -85,6 +89,7 @@ class Send24_Order_Creation {
 		        'phone' => $phone,
 		        'email' => $email,
 		        'images' => $product_images,
+		        'variant' => $variant
 	        ];
 		if (!$destination_hub_id){
 			Send24_Logger::write_log("Is not null: $destination_hub_id");
