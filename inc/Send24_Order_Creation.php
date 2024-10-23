@@ -32,23 +32,9 @@ class Send24_Order_Creation {
 
 
     public function create_send24_order( $order ) {
-
-        $mode = $this->settings['mode'];
-
-        // Fetch the appropriate API key based on the 
-        if ($mode === 'test') {
-            $api_key = $this->settings['test_api_key'];
-        } else {
-            $api_key = $this->settings['live_api_key'];
-        }
-        Send24_Logger::write_log("Send24 API Key: " . $api_key);
-	    //$order = wc_get_order($order_id);
-	    Send24_Logger::write_log("Starting Send24 order creation for order ID: " .json_encode($order));
-
-	    // Retrieve the origin_hub_id from the WooCommerce session
         $destination_hub_id = WC()->session->get('send24_selected_hub_id');
         if (!$destination_hub_id) {
-	        $destination_hub_id = null; // Fallback value if the session is not set
+	        $destination_hub_id = null;
         }
 
 		Send24_Logger::write_log("Destination Hub ID: " . $destination_hub_id);
@@ -98,9 +84,12 @@ class Send24_Order_Creation {
 		        'name' => $name,
 		        'phone' => $phone,
 		        'email' => $email,
-		        'destination_hub_id' => $destination_hub_id,
 		        'images' => $product_images,
 	        ];
+		if (!$destination_hub_id){
+			Send24_Logger::write_log("Is not null: $destination_hub_id");
+			$data['destination_hub_id'] = $destination_hub_id;
+		}
 
 		Send24_Logger::write_log("Data: ".json_encode($data));
 

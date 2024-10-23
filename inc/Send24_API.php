@@ -2,6 +2,8 @@
 
 namespace inc;
 
+use WP_Error;
+
 class Send24_API {
 
 	public function test() {
@@ -17,7 +19,7 @@ class Send24_API {
 	}
 
 	public function create_order($params) {
-		return $this->api_request('https://dev.dilivva.com.ng/api/v1/corporates/orders', $params, 'POST');
+		return $this->api_request('https://business-api.dilivva.com.ng/api/v1/orders', $params, 'POST');
 	}
 
 	private function api_request($endpoint, $args = array(), $method = 'POST') {
