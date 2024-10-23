@@ -100,7 +100,6 @@ class Send24_Shipping_Method extends \WC_Shipping_Method {
 
 		$delivery_country_code = $package['destination']['country'];
         $delivery_state_code = $package['destination']['state'];
-
         $destination_state = WC()->countries->get_states($delivery_country_code)[$delivery_state_code];
 
         $destination_address = $package['destination']['address'];
@@ -108,10 +107,11 @@ class Send24_Shipping_Method extends \WC_Shipping_Method {
         $full_destination_address = $destination_address . ', ' . $destination_state;
         Send24_Logger::write_log("State: $full_destination_address");
 
+
         $product_names = [];
 
-        // Prepare data for get_size_and_fragility
         $delivery_base_contents = $package['contents'];
+
         foreach ($delivery_base_contents as $item_id => $item) {
             $product_id = $item["product_id"];
             $product = wc_get_product($product_id);
@@ -125,22 +125,20 @@ class Send24_Shipping_Method extends \WC_Shipping_Method {
 
         $size_fragility = json_decode($size_resp, true);
         
-        // Check if the response contains size and is_fragile information
         if ($size_fragility && isset($size_fragility['name'], $size_fragility['is_fragile'])) {
             $size = $size_fragility['name'];
             $is_fragile = $size_fragility['is_fragile'] ? 1 : 0;
         } else {
-            // Handle error case here
             $size = '';
             $is_fragile = 0;
         }
 
-		// Store size and is_fragile in WooCommerce session for later use
+
 		WC()->session->set('send24_size', $size);
 		WC()->session->set('send24_is_fragile', $is_fragile);
         
-        // Prepare data for calculating price
-        $calculate_price_data = [
+        
+		$calculate_price_data = [
             'size' => $size,
             'destination_address' => $full_destination_address,
             'is_fragile' => $is_fragile
@@ -235,19 +233,11 @@ function clear_shipping_session_data() {
 	//WC()->session->set('send24_shipping_rate', null);
 }
 
-// function load_checkout_script(){
-// 	wp_enqueue_style( 'modal', plugins_url( 'modal.css', __FILE__ ) );
-// 	wp_enqueue_script( 'send24checkout', plugins_url( 'send24checkout.js', __FILE__ ) );
-// 	wp_localize_script( 'send24checkout', 'ajax_object',
-// 		array( 'ajax_url' => admin_url( 'admin-ajax.php' )
-// 		));
-// }
 
 function load_checkout_script() {
     wp_enqueue_style( 'modal', plugins_url( 'modal.css', __FILE__ ) );
 
     wp_enqueue_script( 'jquery' );
-	//wp_enqueue_script( 'send24widget', plugins_url( 'send24_shipping_widget.js', __FILE__ ), array('jquery'), null, true );
 
     wp_enqueue_script( 'send24checkout', plugins_url( 'send24checkout.js', __FILE__ ), array('jquery'), null, true );
 
