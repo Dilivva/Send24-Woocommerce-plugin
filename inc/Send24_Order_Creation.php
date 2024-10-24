@@ -33,7 +33,6 @@ class Send24_Order_Creation {
 
     public function create_send24_order( $order ) {
         $destination_hub_id = WC()->session->get('send24_selected_hub_id');
-		$variant = WC()->session->get('send24_selected_variant');
 
         if (!$destination_hub_id) {
 	        $destination_hub_id = null;
@@ -55,7 +54,15 @@ class Send24_Order_Creation {
         Send24_Logger::write_log("Fragility: " . $is_fragile);
 
 
+        $destination_state_code = $order->get_shipping_state();
+        $destination_country_code = $order->get_shipping_country();
+        $destination_state = WC()->countries->get_states($destination_country_code)[$destination_state_code];
+        
         $destination_address = $order->get_shipping_address_1();
+
+        $full_destination_address = $destination_address . ', ' . $destination_state;
+        Send24_Logger::write_log("State: $full_destination_address");
+
 
         $name = $order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name();
         $phone = $order->get_billing_phone();
@@ -81,15 +88,15 @@ class Send24_Order_Creation {
 
         }
 	        $data = [
-		        'destination_address' => $destination_address,
+		        'destination_address' => $full_destination_address,
 		        'size' => $size,
 		        'label' => $product_names,
 		        'is_fragile' => $is_fragile,
 		        'name' => $name,
 		        'phone' => $phone,
 		        'email' => $email,
+				'destination_hub_id' => $destination_hub_id,
 		        'images' => $product_images,
-		        'variant' => $variant
 	        ];
 		if (!$destination_hub_id){
 			Send24_Logger::write_log("Is not null: $destination_hub_id");
