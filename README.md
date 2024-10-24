@@ -12,9 +12,10 @@ The **Send24 Logistics Plugin** integrates Send24's delivery services into your 
     - [Mode (Test/Live)](#mode-testlive)
   - [Usage](#usage)
     - [Add the Shipping Method](#add-the-shipping-method)
+  - [Settings Screenshots](#settings-screenshots)
     - [Set Up Delivery Options](#set-up-delivery-options)
   - [Order Creation Flow](#order-creation-flow)
-  - [Screenshots](#screenshots)
+  - [Order Screenshots](#order-screenshots)
   - [Debugging](#debugging)
   - [Changelog](#changelog)
   - [License](#license)
@@ -46,6 +47,17 @@ The **Send24 Logistics Plugin** integrates Send24's delivery services into your 
 2. Click on **Add Shipping Method** and select **Send24 Logistics** from the list of available shipping methods.
 3. Configure shipping costs and zones where Send24 shipping is available.
 
+## Settings Screenshots
+
+1. **Store Address**:
+   ![Store Address](./images/store_address.png)
+
+2. **Shipping Method Setting**:
+   ![Shipping Method](./images/shipping_method.png)
+
+3. **API Keys Setting**:
+   ![API Keys](./images/api_keys.png)
+
 ### Set Up Delivery Options
 
 - On the checkout page, the **Send24 Shipping** option will be available in the shipping methods section.
@@ -68,16 +80,19 @@ The **Send24 Logistics Plugin** integrates Send24's delivery services into your 
 3. The order is then sent to the **Send24 API** using the appropriate API key (Test or Live, based on settings).
 4. Upon successful creation, the order information is logged and visible in the **WooCommerce Orders** section.
 
-## Screenshots
+## Order Screenshots
 
-1. **Send24 Shipping Option at Checkout**:
-   ![Send24 Shipping Option](path-to-your-image)
+1. **Send24 Shipping Option at (Cart)**:
+   ![Send24 Shipping Option (Cart)](./images/cart_page.png)
 
-2. **Modal with Delivery Options**:
-   ![Delivery Options Modal](path-to-your-image)
+2. **Send24 Shipping Option (Checkout)**:
+   ![Send24 Shipping Option (Checkout)](./images/checkout_page.png)
 
-3. **Hub Selection for Hub Delivery**:
-   ![Hub Selection](path-to-your-image)
+3. **Modal with Delivery Options**:
+   ![Delivery Options Modal](./images/widget.png)
+
+4. **Hub Selection for Hub Delivery**:
+   ![Hub Selection](./images//widget_nearbyhubs.png)
 
 ## Debugging
 
