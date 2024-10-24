@@ -261,7 +261,7 @@ class Send24_Shipping_Method extends \WC_Shipping_Method {
 			),
 			'test_api_key' => array(
 				'title'       => 	__('Test API Key'),
-				'type'        => 	'text',
+				'type'        => 	'password',
 				'description' => 	__('Your test API key as provided on your Send24 dashboard'),
 				'class'		  =>	'send24_test_api_key send24_test',
 				'default'     => 	__('')
@@ -275,7 +275,7 @@ class Send24_Shipping_Method extends \WC_Shipping_Method {
 			),
 			'live_api_key' => array(
 				'title'       => 	__('Live API Key'),
-				'type'        => 	'text',
+				'type'        => 	'password',
 				'description' => 	__('Your live API key as provided on your Send24 dashboard'),
 				'id'		  =>	'send24_live_api_key send24_live',
 				'default'     => 	__('')
