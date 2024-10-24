@@ -35,7 +35,7 @@ class Send24_Order_Creation {
         if (!$destination_hub_id) {
             $destination_hub_id = '';
         }
-        Send24_Logger::write_log("Destination Hub ID: " . $origin_hub_id);
+        Send24_Logger::write_log("Destination Hub ID: " . $destination_hub_id);
     
         
         $size = WC()->session->get('send24_size');
