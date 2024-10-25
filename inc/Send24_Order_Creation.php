@@ -69,6 +69,9 @@ class Send24_Order_Creation {
         $email = $order->get_billing_email();
 
 
+        $variant = WC()->session->get('send24_selected_variant');
+
+
         // Loop through items for package data
 	    $product_names = '';
 		$product_images = [];
@@ -96,6 +99,7 @@ class Send24_Order_Creation {
 		        'phone' => $phone,
 		        'email' => $email,
 				'destination_hub_id' => $destination_hub_id,
+				'variant' => $variant,
 		        'images' => $product_images,
 	        ];
 		if (!$destination_hub_id){
