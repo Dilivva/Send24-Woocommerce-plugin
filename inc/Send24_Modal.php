@@ -223,6 +223,7 @@ function reloadPage(){
                             shipping_price: price,
                             selected_hub: selectedHubId,
                             selected_variant: selectedVariant
+							security: ajax_object.nonce
                             } 
                             )
 				};

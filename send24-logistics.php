@@ -83,6 +83,11 @@ register_deactivation_hook(__FILE__,'deactivation');
 add_action( 'admin_enqueue_scripts', 'enqueue' );
 function enqueue() {
 	wp_enqueue_script( 'send24settings', plugins_url( '/assets/send24settings.js', __FILE__ ) );
+
+	wp_localize_script('send24settings', 'ajax_object', array(
+        'ajax_url' => admin_url('admin-ajax.php'),
+        'nonce' => wp_create_nonce('send24_nonce_action') // Creates nonce for AJAX security
+    ));
 }
 
 
