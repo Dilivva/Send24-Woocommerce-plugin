@@ -5,99 +5,112 @@ use inc\Send24_Logger;
 
 class Send24_Order_Creation {
 
-    private $api;
+    private Send24_API $api;
+	private array $settings;
 
-    public function __construct() {
-        $this->api = new Send24_API();
-        $this->settings = get_option('woocommerce_send24_logistics_settings');
-        add_action('woocommerce_thankyou', array($this, 'create_send24_order'), 10, 1);
+	private static $instance;
+
+
+	public static function getInstance() {
+		if (!self::$instance) {
+			self::$instance = new self();
+		}
+		return self::$instance;
+
     }
 
-    public function create_send24_order( $order_id ) {
-        
-        Send24_Logger::write_log("Starting Send24 order creation for order ID: " . $order_id);
+    public function __construct() {
+		Send24_Logger::write_log("Send24_Order_Creation");
+        $this->api = new Send24_API();
+        $this->settings = get_option('woocommerce_send24_logistics_settings');
+		//Block checkout
+        add_action('woocommerce_checkout_order_created', array($this, 'create_send24_order'));
+		//For folks still using normal checkout
+	    add_action('woocommerce_store_api_checkout_order_processed', array($this, 'create_send24_order'));
+    }
 
-        // Fetch the shipping method instance to get the API key and mode
-        // $mode = get_option('woocommerce_send24_logistics_environment'); // Assuming 'environment' is the key used in the settings
-        $mode = $this->settings['mode'];
-        Send24_Logger::write_log("Send24 Mode: " . $mode);
 
-        // Fetch the appropriate API key based on the 
-        if ($mode === 'test') {
-            $api_key = $this->settings['test_api_key'];
-        } else {
-            $api_key = $this->settings['live_api_key'];
+
+    public function create_send24_order( $order ) {
+        $destination_hub_id = WC()->session->get('send24_selected_hub_id');
+
+        if (!$destination_hub_id) {
+	        $destination_hub_id = null;
         }
-        Send24_Logger::write_log("Send24 API Key: " . $api_key);
 
-        $order = wc_get_order($order_id);
+		Send24_Logger::write_log("Destination Hub ID: " . $destination_hub_id);
+
+
+        $size = WC()->session->get('send24_size');
+        if (!$size) {
+	        $size = 'small';
+        }
+        Send24_Logger::write_log("Size: " . $size);
+
+        $is_fragile = WC()->session->get('send24_is_fragile');
+        if ($is_fragile === null) {
+	        $is_fragile = 1;
+        }
+        Send24_Logger::write_log("Fragility: " . $is_fragile);
+
+
+        $destination_state_code = $order->get_shipping_state();
+        $destination_country_code = $order->get_shipping_country();
+        $destination_state = WC()->countries->get_states($destination_country_code)[$destination_state_code];
         
-        // Define hardcoded values and WooCommerce data
-        $pickup_address = 'UNILAG Senate Building, Lagos, Nigeria';
-        $pickup_coordinates = '6.5194683, 3.3987129';
-        $size_id = '68882080-9cb3-11ed-a1e0-1b525c297de0'; // Example size ID
-        $origin_hub_id = '32b51d10-8eaf-11ee-8032-37c06d0259ca'; // Example hub ID
-        $is_fragile = 0; 
-        $variant = 'HUB_TO_DOOR';
-
-        // Store information
-        $store_raw_country = get_option('woocommerce_default_country');
-        $split_country = explode(':', $store_raw_country);
-        $store_country = isset($split_country[0]) ? $split_country[0] : '';
-        $store_state = isset($split_country[1]) ? $split_country[1] : '';
-        $pickup_state = WC()->countries->get_states($store_country)[$store_state];
-
-        // Destination information
         $destination_address = $order->get_shipping_address_1();
-        $destination_coordinates = '6.5156, 3.3862'; // Placeholder
-        $des_country = $order->get_shipping_country();
-        $des_state = $order->get_shipping_state();
-        $destination_state = WC()->countries->get_states($des_country)[$des_state];
 
-        $destination_local_government = 'Lagelu'; // Example LGA
+        $full_destination_address = $destination_address . ', ' . $destination_state;
+        Send24_Logger::write_log("State: $full_destination_address");
+
+
         $name = $order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name();
-        $phone = '07033128603';
+        $phone = $order->get_billing_phone();
         $email = $order->get_billing_email();
-        $order_type = 'delivery';
+
+
+        $variant = WC()->session->get('send24_selected_variant');
+
 
         // Loop through items for package data
+	    $product_names = '';
+		$product_images = [];
         foreach ($order->get_items() as $item_key => $item) {
-            $label = $item->get_name();
-            $product = $item->get_product();
-            $package_note = $product->get_short_description();
-            $recipient_note = 'Delivery Note';
-            $product_image = $product->get_image_id();
+	        $label = $item->get_name();
+			$product_names = $product_names .'-' . $label;
+	        $product = $item->get_product();
 
-            // Prepare API data
-            $data = [
-                'pickup_address' => $pickup_address,
-                'pickup_coordinates' => $pickup_coordinates,
-                'destination_address' => $destination_address,
-                'destination_coordinates' => $destination_coordinates,
-                'size_id' => $size_id,
-                'label' => $label,
-                'package_note' => $package_note,
-                'is_fragile' => $is_fragile,
-                'name' => $name,
-                'phone' => $phone,
-                'email' => $email,
-                'origin_hub_id' => $origin_hub_id,
-                'recipient_note' => $recipient_note,
-                'destination_state' => $destination_state,
-                'destination_local_government' => $destination_local_government,
-                'pickup_state' => $pickup_state,
-                'variant' => $variant,
-                'images' => [$product_image],
-                'order_type' => $order_type
-            ];
+	        $product_image_id = $product->get_image_id();
+	        $product_image_url = wp_get_attachment_url($product_image_id);
 
-            $test = json_encode( $data );
+	        if ($product_image_url) {
+		        $product_images[] = $product_image_url;
+	        }else{
+				$product_images[] = "https://i.pinimg.com/474x/4d/2d/b9/4d2db95c05c3786d6e6decb6d6327c4d.jpg";
+	        }
 
-            // die('You hit the right hook!-------'. $test . '.....');
-
-            // Send to API
-            $response = $this->api->create_order($data, $api_key);
-            Send24_Logger::write_log("Order Creation Response: " . json_encode($response));
         }
+	        $data = [
+		        'destination_address' => $full_destination_address,
+		        'size' => $size,
+		        'label' => $product_names,
+		        'is_fragile' => $is_fragile,
+		        'name' => $name,
+		        'phone' => $phone,
+		        'email' => $email,
+				'destination_hub_id' => $destination_hub_id,
+				'variant' => $variant,
+		        'images' => $product_images,
+	        ];
+		if (!$destination_hub_id){
+			Send24_Logger::write_log("Is not null: $destination_hub_id");
+			$data['destination_hub_id'] = $destination_hub_id;
+		}
+
+		Send24_Logger::write_log("Data: ".json_encode($data));
+
+		$response = $this->api->create_order($data);
+		Send24_Logger::write_log("Order Creation Response: " . json_encode($response));
+
     }
 }
