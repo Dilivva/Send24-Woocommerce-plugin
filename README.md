@@ -4,18 +4,22 @@ The **Send24 Logistics Plugin** integrates Send24's delivery services into your 
 
 ## Table of Contents
 
-1. [Installation](#installation)
-2. [Configuration](#configuration)
-   - [API Keys](#api-keys)
-   - [Mode (Test/Live)](#mode-testlive)
-3. [Usage](#usage)
-   - [Add the Shipping Method](#add-the-shipping-method)
-   - [Set Up Delivery Options](#set-up-delivery-options)
-4. [Order Creation Flow](#order-creation-flow)
-5. [Screenshots](#screenshots)
-6. [Debugging](#debugging)
-7. [Changelog](#changelog)
-8. [License](#license)
+- [Send24 Logistics Plugin for WooCommerce](#send24-logistics-plugin-for-woocommerce)
+  - [Table of Contents](#table-of-contents)
+  - [Installation](#installation)
+  - [Configuration](#configuration)
+    - [API Keys](#api-keys)
+    - [Mode (Test/Live)](#mode-testlive)
+  - [Usage](#usage)
+    - [Add the Shipping Method](#add-the-shipping-method)
+  - [Settings Screenshots](#settings-screenshots)
+    - [Set Up Delivery Options](#set-up-delivery-options)
+  - [Order Creation Flow](#order-creation-flow)
+  - [Order Screenshots](#order-screenshots)
+  - [Wallet Top-Up](#wallet-top-up)
+  - [Debugging](#debugging)
+  - [Changelog](#changelog)
+  - [License](#license)
 
 ## Installation
 
@@ -44,10 +48,22 @@ The **Send24 Logistics Plugin** integrates Send24's delivery services into your 
 2. Click on **Add Shipping Method** and select **Send24 Logistics** from the list of available shipping methods.
 3. Configure shipping costs and zones where Send24 shipping is available.
 
+## Settings Screenshots
+
+1. **Store Address**:
+   ![Store Address](./images/store_address.png)
+
+2. **Shipping Method Setting**:
+   ![Shipping Method](./images/shipping_method.png)
+
+3. **API Keys Setting**:
+   ![API Keys](./images/api_keys.png)
+
 ### Set Up Delivery Options
 
 - On the checkout page, the **Send24 Shipping** option will be available in the shipping methods section.
 - When **Send24 Shipping** is selected, a modal will appear with two delivery options:
+
   1. **Hub Delivery**: Customers can select a hub near their destination address.
   2. **Door Delivery**: The package is delivered directly to the customer’s address.
 
@@ -65,16 +81,38 @@ The **Send24 Logistics Plugin** integrates Send24's delivery services into your 
 3. The order is then sent to the **Send24 API** using the appropriate API key (Test or Live, based on settings).
 4. Upon successful creation, the order information is logged and visible in the **WooCommerce Orders** section.
 
-## Screenshots
+## Order Screenshots
 
-1. **Send24 Shipping Option at Checkout**:
-   ![Send24 Shipping Option](path-to-your-image)
+1. **Send24 Shipping Option at (Cart)**:
+   ![Send24 Shipping Option (Cart)](./images/cart_page.png)
 
-2. **Modal with Delivery Options**:
-   ![Delivery Options Modal](path-to-your-image)
+2. **Send24 Shipping Option (Checkout)**:
+   ![Send24 Shipping Option (Checkout)](./images/checkout_page.png)
 
-3. **Hub Selection for Hub Delivery**:
-   ![Hub Selection](path-to-your-image)
+3. **Modal with Delivery Options**:
+   ![Delivery Options Modal](./images/widget.png)
+
+4. **Hub Selection for Hub Delivery**:
+   ![Hub Selection](./images/widget_nearbyhubs.png)
+
+## Wallet Top-Up
+
+Users can easily top up their Send24 wallet to manage delivery expenses directly from the Send24 dashboard.
+
+1. **Top-Up Wallet**: Click on the **Top-Up Wallet** button.
+   ![Top-Up Wallet](./images/top_up_wallet.png)
+
+2. **Choose a Payment Method**: You can select from two payment options:
+
+   - **Bank Transfer**: Details will be provided for manual transfer.
+   - **PayStack**: An online payment gateway for quick transactions.
+     ![Bank Transfer Option](./images/bank_transfer_option.png)
+     ![Bank Transfer Option2](./images/bank_transfer_option2.png)
+     ![PayStack Option](./images/paystack_option.png)
+     ![PayStack Option2](./images/paystack_option2.png)
+
+3. **Clear Accrued Balance**: If there is an existing balance, you can clear it by clicking on the **Clear Accrued** button.
+   ![Clear Accrued Balance](./images/clear_accrued_balance.png)
 
 ## Debugging
 
@@ -85,6 +123,7 @@ The **Send24 Logistics Plugin** integrates Send24's delivery services into your 
 ## Changelog
 
 **Version 1.0.0**:
+
 - Initial release with Hub Delivery and Door Delivery options.
 - Integration with Send24 API for shipping order creation.
 
