@@ -100,19 +100,19 @@ The **Send24 Logistics Plugin** integrates Send24's delivery services into your 
 Users can easily top up their Send24 wallet to manage delivery expenses directly from the Send24 dashboard.
 
 1. **Top-Up Wallet**: Click on the **Top-Up Wallet** button.
-   ![Top-Up Wallet](./images/top_up_wallet.png)
+   ![Top-Up Wallet](./images/top_up_wallet.JPG)
 
 2. **Choose a Payment Method**: You can select from two payment options:
 
    - **Bank Transfer**: Details will be provided for manual transfer.
    - **PayStack**: An online payment gateway for quick transactions.
-     ![Bank Transfer Option](./images/bank_transfer_option.png)
-     ![Bank Transfer Option2](./images/bank_transfer_option2.png)
-     ![PayStack Option](./images/paystack_option.png)
-     ![PayStack Option2](./images/paystack_option2.png)
+     ![Bank Transfer Option](./images/bank_transfer_option.JPG)
+     ![Bank Transfer Option2](./images/bank_transfer_option2.JPG)
+     ![PayStack Option](./images/paystack_option.JPG)
+     ![PayStack Option2](./images/paystack_option2.JPG)
 
 3. **Clear Accrued Balance**: If there is an existing balance, you can clear it by clicking on the **Clear Accrued** button.
-   ![Clear Accrued Balance](./images/clear_accrued_balance.png)
+   ![Clear Accrued Balance](./images/clear_accrued_balance.JPG)
 
 ## Debugging
 
