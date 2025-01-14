@@ -16,6 +16,7 @@ The **Send24 Logistics Plugin** integrates Send24's delivery services into your 
     - [Set Up Delivery Options](#set-up-delivery-options)
   - [Order Creation Flow](#order-creation-flow)
   - [Order Screenshots](#order-screenshots)
+  - [Wallet Top-Up](#wallet-top-up)
   - [Debugging](#debugging)
   - [Changelog](#changelog)
   - [License](#license)
@@ -92,7 +93,26 @@ The **Send24 Logistics Plugin** integrates Send24's delivery services into your 
    ![Delivery Options Modal](./images/widget.png)
 
 4. **Hub Selection for Hub Delivery**:
-   ![Hub Selection](./images//widget_nearbyhubs.png)
+   ![Hub Selection](./images/widget_nearbyhubs.png)
+
+## Wallet Top-Up
+
+Users can easily top up their Send24 wallet to manage delivery expenses directly from the Send24 dashboard.
+
+1. **Top-Up Wallet**: Click on the **Top-Up Wallet** button.
+   ![Top-Up Wallet](./images/top_up_wallet.JPG)
+
+2. **Choose a Payment Method**: You can select from two payment options:
+
+   - **Bank Transfer**: Details will be provided for manual transfer.
+   - **PayStack**: An online payment gateway for quick transactions.
+     ![Bank Transfer Option](./images/bank_transfer_option.JPG)
+     ![Bank Transfer Option2](./images/bank_transfer_option2.JPG)
+     ![PayStack Option](./images/paystack_option.JPG)
+     ![PayStack Option2](./images/paystack_option2.JPG)
+
+3. **Clear Accrued Balance**: If there is an existing balance, you can clear it by clicking on the **Clear Accrued** button.
+   ![Clear Accrued Balance](./images/clear_accrued_balance.JPG)
 
 ## Debugging
 
@@ -105,8 +125,8 @@ The **Send24 Logistics Plugin** integrates Send24's delivery services into your 
 **Version 1.0.0**:
 
 - Initial release with Hub Delivery and Door Delivery options.
-- Integration with Send24 API for shipping order creation.
+- Integration with Send24 API for shipping order creation
 
 ## License
 
-This plugin is open-source software licensed under the [MIT License](LICENSE).
+- This plugin is licensed under the GNU General Public License v2.0 (or later) (https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html).
