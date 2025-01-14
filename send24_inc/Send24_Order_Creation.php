@@ -1,7 +1,7 @@
 <?php
 // Send24 Order Creation
-use inc\Send24_API;
-use inc\Send24_Logger;
+use send24_inc\Send24_API;
+use send24_inc\Send24_Logger;
 
 class Send24_Order_Creation {
 
@@ -22,7 +22,10 @@ class Send24_Order_Creation {
     public function __construct() {
 		Send24_Logger::write_log("Send24_Order_Creation");
         $this->api = new Send24_API();
-        $this->settings = get_option('woocommerce_send24_logistics_settings');
+        
+		$settings = get_option('woocommerce_send24_logistics_settings');
+        $this->settings = is_array($settings) ? $settings : [];
+
 		//Block checkout
         add_action('woocommerce_checkout_order_created', array($this, 'create_send24_order'));
 		//For folks still using normal checkout
@@ -86,7 +89,7 @@ class Send24_Order_Creation {
 	        if ($product_image_url) {
 		        $product_images[] = $product_image_url;
 	        }else{
-				$product_images[] = "https://i.pinimg.com/474x/4d/2d/b9/4d2db95c05c3786d6e6decb6d6327c4d.jpg";
+				$product_images[] = "";
 	        }
 
         }

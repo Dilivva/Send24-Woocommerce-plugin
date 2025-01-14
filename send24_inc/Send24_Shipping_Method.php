@@ -1,7 +1,7 @@
 <?php
 
-use inc\Send24_API;
-use inc\Send24_Logger;
+use send24_inc\Send24_API;
+use send24_inc\Send24_Logger;
 
 $count = 0;
 class Send24_Shipping_Method extends \WC_Shipping_Method {
@@ -15,11 +15,11 @@ class Send24_Shipping_Method extends \WC_Shipping_Method {
 
 		$this->id                 = 'send24_logistics';
 		$this->instance_id 		  = absint($instance_id);
-		$this->title       = __( 'Send24 Logistics' );
-		$this->method_title    = __('Send24 Logistics');
-		$this->method_description = __( '24 hour shipping solution' );
+		$this->title = esc_html__('Send24 Logistics', 'send24-logistics');
+		$this->method_title = esc_html__('Send24 Logistics', 'send24-logistics');
+		$this->method_description = esc_html__('24 hour shipping solution', 'send24-logistics');
 
-		$this->enabled            = "yes"; // This can be added as a setting but for this example, it's forced enabled.
+		$this->enabled            = "yes";
 
 		$this->supports              = array(
 			'shipping-zones',
@@ -59,12 +59,14 @@ class Send24_Shipping_Method extends \WC_Shipping_Method {
 			$message = "<span style='color:#cb0847;font-weight: 800;'>Not Connected</span>";
 		}
 
-		$this->method_description = __( '24 hour shipping solution' .'<br><br><br><span><b>Status</b>: '. $message.'</span>' );
+		$this->method_description = sprintf(
+			esc_html__('24 hour shipping solution<br><br><br><span><b>Status</b>: %s</span>', 'send24-logistics'),
+			$message
+		);
+		
 	}
 
-	// Fetch shipping options when on the checkout page
 	public function calculate_shipping( $package = array() ){
-		//Only set shipping fee at checkout for consistency
 
 		if (is_cart()){
 			WC()->session->set('send24_shipping_rate', null);
@@ -83,7 +85,6 @@ class Send24_Shipping_Method extends \WC_Shipping_Method {
 			return;
 		}
 
-		//If we already have our shipping fee and shipping variant use that to display description
 
 		$variant = WC()->session->get('send24_selected_variant');
 		$fee = WC()->session->get('send24_shipping_rate');
@@ -131,7 +132,6 @@ class Send24_Shipping_Method extends \WC_Shipping_Method {
 
         $product_names = [];
 
-        // Prepare data for get_size_and_fragility
         $delivery_base_contents = $package['contents'];
         foreach ($delivery_base_contents as $item_id => $item) {
             $product_id = $item["product_id"];
@@ -142,7 +142,6 @@ class Send24_Shipping_Method extends \WC_Shipping_Method {
 
 		$size_fragility_session = WC()->session->get('send24_user_cart_response');
 
-		//Use cache to make page faster
 		if ($size_fragility_session != null){
 			$response = json_decode($size_fragility_session);
 			$this->set_shipping_rate($response);
@@ -157,17 +156,12 @@ class Send24_Shipping_Method extends \WC_Shipping_Method {
 		$is_fragile = $size_fragility->is_fragile;
 
 
-
-		//Send24 can't pick up packages bigger than large items
 		if ($size == null && $is_fragile == null) return;
 
 
-
-		// Store size and is_fragile in WooCommerce session for later use
 		WC()->session->set('send24_size', $size);
 		WC()->session->set('send24_is_fragile', $is_fragile);
         
-        // Prepare data for calculating price
         $calculate_price_data = [
             'size' => $size,
             'destination_address' => $full_destination_address,
@@ -221,7 +215,6 @@ class Send24_Shipping_Method extends \WC_Shipping_Method {
 		foreach ($response->data as $option) {
 			foreach ( $option as $shipping_type => $details ) {
 				if ( $shipping_type === 'HUB_TO_HUB' ) {
-					//If Door delivery was selected by the user, selected hub id will be empty, so just pick the first recommended hub
 					if (empty($hubId)){
 						return $details->recommended_hubs[0];
 					}
@@ -244,75 +237,51 @@ class Send24_Shipping_Method extends \WC_Shipping_Method {
 		}
 
 	}
-
-
-
 	
 
 	public function init_form_fields() {
 		$this->form_fields = array(
 			'mode' => array(
-				'title'       => 	__('Environment'),
+				'title' => esc_html__('Environment', 'send24-logistics'),
 				'type'        => 	'select',
-				'description' => 	__('All order type created are determined by this mode.'),
+				'description' => esc_html__('All order type created are determined by this mode.', 'send24-logistics'),
 				'default'     => 	'test',
 				'options'     => 	array('test' => 'Test', 'live' => 'Live'),
 				'class'		  =>	'send24_mode'
 			),
 			'test_api_key' => array(
-				'title'       => 	__('Test API Key'),
+				'title' => esc_html__('Test API Key', 'send24-logistics'),
 				'type'        => 	'password',
-				'description' => 	__('Your test API key as provided on your Send24 dashboard'),
+				'description' => esc_html__('Your test API key as provided on your Send24 dashboard', 'send24-logistics'),
 				'class'		  =>	'send24_test_api_key send24_test',
-				'default'     => 	__('')
+				'default'     => 	null,
 			),
 			'test_secret_key' => array(
-				'title'       => 	__('Test Secret Key'),
+				'title' => esc_html__('Test Secret Key', 'send24-logistics'),
 				'type'        => 	'password',
-				'description' => 	__('Your test secret key as provided on your Send24 dashboard'),
+				'description' => esc_html__('Your test secret key as provided on your Send24 dashboard', 'send24-logistics'),
 				'class'		  =>	' send24_test_secret_key send24_test',
-				'default'     => 	__('')
+				'default'     => 	null,
 			),
 			'live_api_key' => array(
-				'title'       => 	__('Live API Key'),
+				'title' => esc_html__('Live API Key', 'send24-logistics'),
 				'type'        => 	'password',
-				'description' => 	__('Your live API key as provided on your Send24 dashboard'),
+				'description' => esc_html__('Your live API key as provided on your Send24 dashboard', 'send24-logistics'),
 				'id'		  =>	'send24_live_api_key send24_live',
-				'default'     => 	__('')
+				'default'     => 	null,
 			),
 			'live_secret_key' => array(
-				'title'       => 	__('Live Secret Key'),
+				'title' => esc_html__('Live Secret Key', 'send24-logistics'),
 				'type'        => 	'password',
-				'description' => 	__('Your live secret key as provided on your Send24 dashboard'),
+				'description' => esc_html__('Your live secret key as provided on your Send24 dashboard', 'send24-logistics'),
 				'id'		  =>	'send24_live_secret_key send24_live',
-				'default'     => 	__('')
+				'default'     => 	null,
 			)
 		);
 	}
 
 	}
 
-add_filter( 'woocommerce_cart_calculate_fees', 'load_checkout_script', 10, 1 );
+add_filter( 'woocommerce_cart_calculate_fees', 'send24_load_checkout_script', 10, 1 );
 
 
-// function load_checkout_script(){
-// 	wp_enqueue_style( 'modal', plugins_url( 'modal.css', __FILE__ ) );
-// 	wp_enqueue_script( 'send24checkout', plugins_url( 'send24checkout.js', __FILE__ ) );
-// 	wp_localize_script( 'send24checkout', 'ajax_object',
-// 		array( 'ajax_url' => admin_url( 'admin-ajax.php' )
-// 		));
-// }
-
-function load_checkout_script() {
-    wp_enqueue_style( 'modal', plugins_url( 'modal.css', __FILE__ ) );
-
-    wp_enqueue_script( 'jquery' );
-	//wp_enqueue_script( 'send24widget', plugins_url( 'send24_shipping_widget.js', __FILE__ ), array('jquery'), null, true );
-
-    wp_enqueue_script( 'send24checkout', plugins_url( 'send24checkout.js', __FILE__ ), array('jquery'), null, true );
-
-    wp_localize_script( 'send24checkout', 'ajax_object', array(
-        'ajax_url' => admin_url( 'admin-ajax.php' ),
-    ));
-}
-add_action( 'wp_enqueue_scripts', 'load_checkout_script' );

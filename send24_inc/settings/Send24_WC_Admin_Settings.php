@@ -1,6 +1,6 @@
 <?php
 
-namespace inc\settings;
+namespace send24_inc\settings;
 
 class Send24_WC_Admin_Settings {
 

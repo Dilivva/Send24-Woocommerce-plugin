@@ -1,0 +1,151 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
+
+body {
+  font-family: 'Poppins', sans-serif;
+}
+
+@keyframes blink {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.send24-modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.send24-modal-content {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 15px;
+  width: 400px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.send24-close {
+  position: absolute;
+  top: 10px;
+  right: 20px;
+  font-size: 28px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.send24-logo {
+  width: 150px;
+  margin-bottom: 20px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.send24-shipping-option {
+  padding: 15px;
+  border: 1px solid #ddd;
+  margin-bottom: 15px;
+  border-radius: 10px;
+  background-color: #f9f9f9;
+  position: relative;
+}
+
+.send24-shipping-label {
+  font-weight: 600;
+  color: #333;
+  display: inline-block;
+  margin-right: 10px;
+  font-family: 'Arial', sans-serif;
+}
+
+.send24-shipping-price {
+  float: right;
+  font-weight: 600;
+  color: #d2691e;
+  font-size: 16px;
+  font-family: 'Arial', sans-serif;
+}
+
+.send24-description {
+  margin-top: 5px;
+  font-size: 14px;
+  color: #777;
+  font-family: 'Arial', sans-serif;
+}
+
+.send24-hub-button,
+.send24-confirm-button {
+  padding: 10px 20px;
+  background-color: #d2691e;
+  color: white;
+  border: none;
+  border-radius: 30px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 10px;
+  font-weight: 600;
+  font-family: 'Arial', sans-serif;
+}
+
+.send24-hub-button:hover,
+.send24-confirm-button:hover {
+  background-color: #e64a19;
+}
+
+.loader {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #d2691e;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.send24-hub-text {
+  font-style: italic;
+  font-weight: bold;
+  font-size: 14px;
+  color: #ff5722;
+  margin-top: 10px;
+  font-family: 'Arial', sans-serif;
+  font-family: 'Arial', sans-serif;
+}
+
+.send24-hub-link {
+  font-style: italic;
+  font-weight: bold;
+  font-size: 14px;
+  color: #ff5722;
+  text-decoration: none;
+  cursor: pointer;
+  font-family: 'Arial', sans-serif;
+}
+
+.send24-confirm {
+  text-align: center;
+}

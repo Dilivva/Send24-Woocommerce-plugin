@@ -1,6 +1,6 @@
 <?php
 
-namespace inc;
+namespace send24_inc;
 
 class Send24_Deactivation{
 
